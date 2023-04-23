@@ -1,4 +1,4 @@
-module github.com/clubo-app/clubben/libs/id
+module github.com/clubben/id
 
 go 1.19
 

@@ -9,27 +9,25 @@ package id
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/segmentio/ksuid"
 )
-
-// Number of characters before the underscore in an ID
-const prefixLength = 2
 
 // Define enum for ID types
 type TypeId int32
 
 const (
-	Undefined TypeId = iota
+	None TypeId = iota
 	User
 	Company
 )
 
 // `idData` contains data for each TypeId
 var idData = map[TypeId]([]string){
-	Undefined: {"", "undefined"},
-	User:      {"u", "user"},
-	Company:   {"c", "company"},
+	None:    {"", "none"},
+	User:    {"u", "user"},
+	Company: {"c", "company"},
 }
 
 // Used as a reverse lookup of TypeId by prefix
@@ -53,20 +51,20 @@ func (typeId TypeId) String() string {
 
 // Creates an ID string for the given object type
 func New(typeId TypeId) string {
-	if typeId == Undefined {
-		return ""
-	}
-
 	id := ksuid.New().String()
 	prefix := idData[typeId][0]
+
+	if typeId == None {
+		return id
+	}
 
 	return fmt.Sprintf("%s_%s", prefix, id)
 }
 
 // Gets the type for the given ID string
 func GetType(id string) TypeId {
-	if len(id) != (prefixLength+28) || id[prefixLength:prefixLength+1] != "_" {
-		return Undefined
+	if !strings.Contains(id, "_") {
+		return None
 	}
 
 	if !prefixLookupInit {
@@ -78,6 +76,6 @@ func GetType(id string) TypeId {
 	if typeId != 0 {
 		return typeId
 	} else {
-		return Undefined
+		return None
 	}
 }

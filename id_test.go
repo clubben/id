@@ -2,6 +2,7 @@ package id
 
 import (
 	"testing"
+	"time"
 )
 
 func TestParse(t *testing.T) {
@@ -53,5 +54,27 @@ func TestParse(t *testing.T) {
 				}
 			}
 		})
+	}
+}
+
+func TestNewWithTime(t *testing.T) {
+	id1, err := NewWithTime(User, time.Now().Add(-time.Minute))
+	if err != nil {
+		t.Error("Expected err to be nil. got: ", err)
+	}
+	id2, err := NewWithTime(User, time.Now().Add(-2*time.Minute))
+	if err != nil {
+		t.Error("Expected err to be nil. got: ", err)
+	}
+	id3, err := NewWithTime(User, time.Now().Add(-3*time.Minute))
+	if err != nil {
+		t.Error("Expected err to be nil. got: ", err)
+	}
+
+	if id1.Time().Unix() < id2.Time().Unix() {
+		t.Errorf("Expected %v to be greator than %v", id1.Time().Unix(), id2.Time().Unix())
+	}
+	if id2.Time().Unix() < id3.Time().Unix() {
+		t.Errorf("Expected %v to be greator than %v", id2.Time().Unix(), id3.Time().Unix())
 	}
 }

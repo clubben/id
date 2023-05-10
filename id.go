@@ -63,6 +63,14 @@ func New(typeId IDType) ID {
 	}
 }
 
+func NewWithTime(typeId IDType, time time.Time) (ID, error) {
+	id, err := ksuid.NewRandomWithTime(time)
+	return ID{
+		t:  typeId,
+		id: id,
+	}, err
+}
+
 func Parse(id string) (ID, error) {
 	parts := strings.Split(id, "_")
 	if len(parts) == 1 {

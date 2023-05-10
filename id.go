@@ -10,6 +10,7 @@ package id
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/segmentio/ksuid"
 )
@@ -104,4 +105,8 @@ func (i ID) String() string {
 
 func (i ID) GetType() IDType {
 	return i.t
+}
+
+func (i ID) Time() time.Time {
+	return i.id.Time()
 }

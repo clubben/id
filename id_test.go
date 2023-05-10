@@ -1,51 +1,57 @@
 package id
 
 import (
-	"strings"
 	"testing"
 )
 
-func TestIdType(t *testing.T) {
+func TestParse(t *testing.T) {
 	type test struct {
-		name  string
-		input TypeId
-		want  string
+		name         string
+		input        []string
+		expectedType IDType
 	}
 
 	tables := []test{
 		{
-			name:  "User",
-			input: User,
-			want:  "u",
+			name: "User",
+			input: []string{
+				"u_2PbxA3jxwlfu6WMV8B45QaFA6nH",
+				"u_2PbxA5xIuKz6zeudIBfWHZfzNHN",
+				"u_2PbxA3a9gPGQO1vlJ7x1BJOLEhZ",
+			},
+			expectedType: User,
 		},
 		{
-			name:  "Company",
-			input: Company,
-			want:  "c",
+			name: "Company",
+			input: []string{
+				"c_2PbxHSJYsiaWyuprke168Do5vxy",
+				"c_2PbxHUMUJBaQTTstfMOhG0oKtA9",
+				"c_2PbxHUtqHcp5FhLwuKc1ntARjmn",
+			},
+			expectedType: Company,
+		},
+		{
+			name: "None",
+			input: []string{
+				"2PbxV6hn3ceANtvwr6Rs7lRgwra",
+				"2PbxV8MUKuqeOBgrVXtDPkVB5h2",
+				"2PbxV1iCfsulW1KxLcBurfRjaWX",
+			},
+			expectedType: None,
 		},
 	}
 
-	for _, tc := range tables {
-		t.Run(tc.name, func(t *testing.T) {
-			id := New(tc.input)
-
-			got := strings.Split(id, "_")
-
-			if got[0] != tc.want {
-				t.Fatalf("expected: %v, got: %v", tc.want, got)
+	for _, tt := range tables {
+		t.Run(tt.name, func(t *testing.T) {
+			for _, in := range tt.input {
+				id, err := Parse(in)
+				if err != nil {
+					t.Error("Expected err to be nil. got: ", err)
+				}
+				if tt.expectedType != id.GetType() {
+					t.Errorf("Expected %s to equal %s", id.GetType(), tt.expectedType)
+				}
 			}
 		})
 	}
-
-	t.Run("None", func(t *testing.T) {
-		id := New(None)
-		if len(id) != 27 {
-			t.Error("Length of ksuid should be 27")
-		}
-
-		if GetType(id) != None {
-			t.Error("Type should be None")
-		}
-
-	})
 }

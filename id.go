@@ -15,16 +15,16 @@ import (
 )
 
 // Define enum for ID types
-type TypeId int32
+type IDType int32
 
 const (
-	None TypeId = iota
+	None IDType = iota
 	User
 	Company
 )
 
 // `idData` contains data for each TypeId
-var idData = map[TypeId]([]string){
+var idData = map[IDType]([]string){
 	None:    {"", "none"},
 	User:    {"u", "user"},
 	Company: {"c", "company"},
@@ -32,50 +32,76 @@ var idData = map[TypeId]([]string){
 
 // Used as a reverse lookup of TypeId by prefix
 var (
-	prefixLookup     map[string]TypeId
+	prefixLookup     map[string]IDType
 	prefixLookupInit = false
 )
 
 // Populates `prefixLookup`
 func createPrefixLookup() {
-	prefixLookup = make(map[string]TypeId)
+	prefixLookup = make(map[string]IDType)
 	for key, val := range idData {
 		prefixLookup[val[0]] = key
 	}
 }
 
 // `String()` method for `TypeId`
-func (typeId TypeId) String() string {
+func (typeId IDType) String() string {
 	return idData[typeId][1]
 }
 
-// Creates an ID string for the given object type
-func New(typeId TypeId) string {
-	id := ksuid.New().String()
-	prefix := idData[typeId][0]
-
-	if typeId == None {
-		return id
-	}
-
-	return fmt.Sprintf("%s_%s", prefix, id)
+type ID struct {
+	t  IDType
+	id ksuid.KSUID
 }
 
-// Gets the type for the given ID string
-func GetType(id string) TypeId {
-	if !strings.Contains(id, "_") {
-		return None
+// Creates an ID string for the given object type
+func New(typeId IDType) ID {
+	return ID{
+		t:  typeId,
+		id: ksuid.New(),
 	}
+}
 
-	if !prefixLookupInit {
-		createPrefixLookup()
-		prefixLookupInit = true
-	}
+func Parse(id string) (ID, error) {
+	parts := strings.Split(id, "_")
+	if len(parts) == 1 {
+		parsed, err := ksuid.Parse(parts[0])
+		if err != nil {
+			return ID{}, err
+		}
 
-	typeId := prefixLookup[id[0:2]]
-	if typeId != 0 {
-		return typeId
+		return ID{
+			t:  None,
+			id: parsed,
+		}, nil
 	} else {
-		return None
+		parsed, err := ksuid.Parse(parts[1])
+		if err != nil {
+			return ID{}, err
+		}
+
+		if !prefixLookupInit {
+			createPrefixLookup()
+			prefixLookupInit = true
+		}
+
+		typeId := prefixLookup[parts[0]]
+
+		return ID{
+			t:  typeId,
+			id: parsed,
+		}, nil
 	}
+}
+
+func (i ID) String() string {
+	if i.t == None {
+		return i.id.String()
+	}
+	prefix := idData[i.t][0]
+	return fmt.Sprintf("%s_%s", prefix, i.id.String())
+}
+
+func (i ID) GetType() IDType {
+	return i.t
 }
